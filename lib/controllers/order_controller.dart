@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/service_order.dart';
+import '../models/user_address.dart';
 import '../services/order_service.dart';
 
 class OrderListController extends ChangeNotifier {
@@ -105,7 +106,7 @@ class OrderWizardController extends ChangeNotifier {
 
   int _currentPage = 0;
   int get currentPage => _currentPage;
-  final int totalPages = 6; // +1 page for address selection
+  final int totalPages = 5; // +1 page for address selection
 
   String? selectedAddressId;
   String? urgencyType; // 'agendar' ou 'agora'
@@ -113,9 +114,6 @@ class OrderWizardController extends ChangeNotifier {
   TimeOfDay? scheduledTime;
   
   String? cleaningType; // 'padrao', 'pesada', 'pos_obra'
-  
-  int bedrooms = 1;
-  int bathrooms = 1;
   
   File? securityVideo;
 
@@ -156,43 +154,23 @@ class OrderWizardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void incrementBedrooms() {
-    bedrooms++;
-    notifyListeners();
-  }
-
-  void decrementBedrooms() {
-    if (bedrooms > 0) bedrooms--;
-    notifyListeners();
-  }
-
-  void incrementBathrooms() {
-    bathrooms++;
-    notifyListeners();
-  }
-
-  void decrementBathrooms() {
-    if (bathrooms > 0) bathrooms--;
-    notifyListeners();
-  }
-
   void setSecurityVideo(File? video) {
     securityVideo = video;
     notifyListeners();
   }
 
-  double calculateTotal() {
+  double calculateTotal(UserAddress address) {
     double basePrice = 100.0;
     if (cleaningType == 'pesada') basePrice = 180.0;
     if (cleaningType == 'pos_obra') basePrice = 300.0;
 
-    double sizeMultiplier = (bedrooms * 20.0) + (bathrooms * 30.0);
+    double sizeMultiplier = (address.bedrooms * 20.0) + (address.bathrooms * 30.0);
     double total = basePrice + sizeMultiplier;
     if (urgencyType == 'agora') total += 50.0;
     return total;
   }
 
-  Future<String?> finishFlow() async {
+  Future<String?> finishFlow(UserAddress address) async {
     _isLoading = true;
     notifyListeners();
 
@@ -221,9 +199,9 @@ class OrderWizardController extends ChangeNotifier {
         urgencyType: urgencyType!,
         scheduledDate: scheduledDateTime,
         cleaningType: cleaningType!,
-        bedrooms: bedrooms,
-        bathrooms: bathrooms,
-        estimatedPrice: calculateTotal(),
+        bedrooms: address.bedrooms,
+        bathrooms: address.bathrooms,
+        estimatedPrice: calculateTotal(address),
         videoUrl: uploadedVideoUrl,
       );
 

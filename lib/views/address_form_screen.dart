@@ -30,6 +30,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
   bool _isDefault = false;
   bool _isFetchingCep = false;
+  int _bedrooms = 1;
+  int _bathrooms = 1;
 
   @override
   void dispose() {
@@ -98,6 +100,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       bairro: _bairroController.text.trim(),
       cidade: _cidadeController.text.trim(),
       estado: _estadoController.text.trim(),
+      bedrooms: _bedrooms,
+      bathrooms: _bathrooms,
       isDefault: _isDefault,
     );
 
@@ -108,6 +112,61 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     } else {
       _showSnackBar(error, isError: true);
     }
+  }
+
+  Widget _buildCounterRow({
+    required String title,
+    required IconData icon,
+    required int value,
+    required VoidCallback onIncrement,
+    required VoidCallback onDecrement,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 28, color: Colors.black87),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+        ),
+        Row(
+          children: [
+            IconButton(
+              onPressed: onDecrement,
+              icon: const Icon(Icons.remove_circle_outline),
+              color: value > 0 ? Colors.black : Colors.grey,
+              iconSize: 32,
+            ),
+            SizedBox(
+              width: 32,
+              child: Text(
+                '$value',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: onIncrement,
+              icon: const Icon(Icons.add_circle_outline),
+              color: Colors.black,
+              iconSize: 32,
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -216,6 +275,35 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+              const Text(
+                'Tamanho do Imóvel',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              _buildCounterRow(
+                title: 'Quartos',
+                icon: Icons.bed,
+                value: _bedrooms,
+                onIncrement: () => setState(() => _bedrooms++),
+                onDecrement: () {
+                  if (_bedrooms > 0) setState(() => _bedrooms--);
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildCounterRow(
+                title: 'Banheiros',
+                icon: Icons.bathtub,
+                value: _bathrooms,
+                onIncrement: () => setState(() => _bathrooms++),
+                onDecrement: () {
+                  if (_bathrooms > 0) setState(() => _bathrooms--);
+                },
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
               const SizedBox(height: 16),
               SwitchListTile(
                 title: const Text('Definir como endereço padrão'),

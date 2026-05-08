@@ -9,6 +9,8 @@ class UserAddress {
   final String bairro;
   final String cidade;
   final String estado;
+  final int bedrooms;
+  final int bathrooms;
   final bool isDefault;
   final DateTime? createdAt;
 
@@ -23,6 +25,8 @@ class UserAddress {
     required this.bairro,
     required this.cidade,
     required this.estado,
+    this.bedrooms = 1,
+    this.bathrooms = 1,
     this.isDefault = false,
     this.createdAt,
   });
@@ -45,6 +49,8 @@ class UserAddress {
       'bairro': bairro,
       'cidade': cidade,
       'estado': estado,
+      'bedrooms': bedrooms,
+      'bathrooms': bathrooms,
       'is_default': isDefault,
     };
   }
@@ -61,6 +67,8 @@ class UserAddress {
       bairro: map['bairro'] as String,
       cidade: map['cidade'] as String,
       estado: map['estado'] as String,
+      bedrooms: map['bedrooms'] as int? ?? 1,
+      bathrooms: map['bathrooms'] as int? ?? 1,
       isDefault: map['is_default'] as bool? ?? false,
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
@@ -79,6 +87,8 @@ class UserAddress {
     String? bairro,
     String? cidade,
     String? estado,
+    int? bedrooms,
+    int? bathrooms,
     bool? isDefault,
     DateTime? createdAt,
   }) {
@@ -93,6 +103,8 @@ class UserAddress {
       bairro: bairro ?? this.bairro,
       cidade: cidade ?? this.cidade,
       estado: estado ?? this.estado,
+      bedrooms: bedrooms ?? this.bedrooms,
+      bathrooms: bathrooms ?? this.bathrooms,
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt ?? this.createdAt,
     );

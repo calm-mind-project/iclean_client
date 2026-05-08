@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../controllers/order_controller.dart';
 import '../controllers/address_controller.dart';
+import '../models/user_address.dart';
 import 'address_form_screen.dart';
 import 'widgets/premium_button.dart';
 import 'widgets/selection_card.dart';
@@ -63,7 +64,7 @@ class _ServiceFlowScreenState extends State<ServiceFlowScreen> {
     }
 
     // Finalização
-    if (_wizardController.currentPage == 5) {
+    if (_wizardController.currentPage == 4) {
       _finishFlow();
       return;
     }
@@ -92,7 +93,8 @@ class _ServiceFlowScreenState extends State<ServiceFlowScreen> {
   }
 
   Future<void> _finishFlow() async {
-    final error = await _wizardController.finishFlow();
+    final selectedAddress = _addressController.addresses.firstWhere((a) => a.id == _wizardController.selectedAddressId);
+    final error = await _wizardController.finishFlow(selectedAddress);
 
     if (error == null) {
       if (!mounted) return;
@@ -195,7 +197,6 @@ class _ServiceFlowScreenState extends State<ServiceFlowScreen> {
                       _buildStep2(),
                       _buildStep3(),
                       _buildStep4(),
-                      _buildStep5(),
                     ],
                   ),
                 ),
@@ -204,7 +205,7 @@ class _ServiceFlowScreenState extends State<ServiceFlowScreen> {
                 Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: PremiumButton(
-                    text: _wizardController.currentPage == 5 ? 'Confirmar Pedido' : 'Continuar',
+                    text: _wizardController.currentPage == 4 ? 'Confirmar Pedido' : 'Continuar',
                     isLoading: _wizardController.isLoading,
                     onPressed: _nextPage,
                   ),
@@ -500,114 +501,8 @@ class _ServiceFlowScreenState extends State<ServiceFlowScreen> {
     );
   }
 
-  // PASSO 3: Tamanho
+  // PASSO 3: Vídeo de Segurança (Opcional)
   Widget _buildStep3() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 24),
-          const Text(
-            'Tamanho\ndo imóvel',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              height: 1.2,
-              letterSpacing: -1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Isso nos ajuda a calcular o tempo estimado e o valor do serviço.',
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 40),
-
-          // Contador Quartos
-          _buildCounterRow(
-            title: 'Quartos',
-            icon: Icons.bed,
-            value: _wizardController.bedrooms,
-            onIncrement: _wizardController.incrementBedrooms,
-            onDecrement: _wizardController.decrementBedrooms,
-          ),
-
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Divider(),
-          ),
-
-          // Contador Banheiros
-          _buildCounterRow(
-            title: 'Banheiros',
-            icon: Icons.bathtub,
-            value: _wizardController.bathrooms,
-            onIncrement: _wizardController.incrementBathrooms,
-            onDecrement: _wizardController.decrementBathrooms,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCounterRow({
-    required String title,
-    required IconData icon,
-    required int value,
-    required VoidCallback onIncrement,
-    required VoidCallback onDecrement,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, size: 28, color: Colors.black87),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
-        ),
-        Row(
-          children: [
-            IconButton(
-              onPressed: onDecrement,
-              icon: const Icon(Icons.remove_circle_outline),
-              color: value > 0 ? Colors.black : Colors.grey,
-              iconSize: 32,
-            ),
-            SizedBox(
-              width: 32,
-              child: Text(
-                '$value',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            IconButton(
-              onPressed: onIncrement,
-              icon: const Icon(Icons.add_circle_outline),
-              color: Colors.black,
-              iconSize: 32,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // PASSO 4: Vídeo de Segurança (Opcional)
-  Widget _buildStep4() {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
@@ -715,9 +610,24 @@ class _ServiceFlowScreenState extends State<ServiceFlowScreen> {
     }
   }
 
-  // PASSO 5: Resumo e Valor Fictício
-  Widget _buildStep5() {
-    final total = _wizardController.calculateTotal();
+  // PASSO 4: Resumo e Valor Fictício
+  Widget _buildStep4() {
+    final addressId = _wizardController.selectedAddressId;
+    UserAddress? selectedAddress;
+    
+    if (addressId != null && _addressController.addresses.isNotEmpty) {
+      try {
+        selectedAddress = _addressController.addresses.firstWhere((a) => a.id == addressId);
+      } catch (e) {
+        // Ignora
+      }
+    }
+    
+    if (selectedAddress == null) {
+      return const SizedBox.shrink(); // Previne erro de build antecipado do PageView
+    }
+
+    final total = _wizardController.calculateTotal(selectedAddress);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -770,7 +680,7 @@ class _ServiceFlowScreenState extends State<ServiceFlowScreen> {
                 const Divider(height: 24),
                 _buildSummaryLine(
                   'Tamanho',
-                  '${_wizardController.bedrooms} Quartos, ${_wizardController.bathrooms} Banh.',
+                  '${selectedAddress.bedrooms} Quartos, ${selectedAddress.bathrooms} Banh.',
                 ),
                 const Divider(height: 32, color: Colors.black26),
                 Row(
