@@ -76,7 +76,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<String?> register() async {
+  Future<String?> register({int bedrooms = 1, int bathrooms = 1}) async {
     // Validação
     if (registerNameController.text.trim().isEmpty ||
         registerEmailController.text.trim().isEmpty ||
@@ -92,13 +92,12 @@ class AuthController extends ChangeNotifier {
 
     _setLoading(true);
     try {
-      await _authService.signUp(
+      final user = await _authService.signUp(
         email: registerEmailController.text.trim(),
         password: registerPasswordController.text,
         name: registerNameController.text.trim(),
       );
 
-      final user = _authService.currentUser;
       if (user != null) {
         final addressService = AddressService();
         await addressService.createAddress(
@@ -112,6 +111,8 @@ class AuthController extends ChangeNotifier {
             bairro: registerBairroController.text.trim(),
             cidade: registerCidadeController.text.trim(),
             estado: registerEstadoController.text.trim(),
+            bedrooms: bedrooms,
+            bathrooms: bathrooms,
             isDefault: true,
           ),
         );

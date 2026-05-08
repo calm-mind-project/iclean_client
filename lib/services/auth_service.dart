@@ -12,18 +12,19 @@ class AuthService {
     await _client.auth.signInWithPassword(email: email, password: password);
   }
 
-  Future<void> signUp({
+  Future<User?> signUp({
     required String email,
     required String password,
     required String name,
   }) async {
-    await _client.auth.signUp(
+    final response = await _client.auth.signUp(
       email: email,
       password: password,
       data: {
         'name': name,
       },
     );
+    return response.user;
   }
 
   Future<void> signOut() async {

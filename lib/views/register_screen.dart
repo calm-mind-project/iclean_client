@@ -14,6 +14,8 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final AuthController _authController = AuthController();
   int _currentStep = 0;
+  int _bedrooms = 1;
+  int _bathrooms = 1;
 
   @override
   void dispose() {
@@ -40,7 +42,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _register() async {
-    final error = await _authController.register();
+    final error = await _authController.register(
+      bedrooms: _bedrooms,
+      bathrooms: _bathrooms,
+    );
     if (error == null) {
       _showSnackBar('Cadastro realizado com sucesso!');
       if (mounted) {
@@ -118,6 +123,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       setState(() {
                         _currentStep += 1;
                       });
+                    } else if (_currentStep == 1) {
+                      if (_authController.registerCepController.text.trim().isEmpty ||
+                          _authController.registerLogradouroController.text.trim().isEmpty ||
+                          _authController.registerNumeroController.text.trim().isEmpty ||
+                          _authController.registerBairroController.text.trim().isEmpty ||
+                          _authController.registerCidadeController.text.trim().isEmpty ||
+                          _authController.registerEstadoController.text.trim().isEmpty) {
+                        _showSnackBar(
+                          'Preencha os dados do endereço antes de continuar.',
+                          isError: true,
+                        );
+                        return;
+                      }
+                      setState(() {
+                        _currentStep += 1;
+                      });
                     } else {
                       _register();
                     }
@@ -132,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     }
                   },
                   controlsBuilder: (context, details) {
-                    final isLastStep = _currentStep == 1;
+                    final isLastStep = _currentStep == 2;
                     return Padding(
                       padding: const EdgeInsets.only(top: 24.0, bottom: 24.0),
                       child: Row(
@@ -313,6 +334,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ],
                       ),
                       isActive: _currentStep >= 1,
+                      state: _currentStep > 1
+                          ? StepState.complete
+                          : StepState.indexed,
+                    ),
+                    Step(
+                      title: const Text(
+                        'Tamanho do Imóvel',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      content: Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Ajude-nos a estimar o valor base para as suas faxinas configurando o tamanho da sua casa padrão.',
+                            style: TextStyle(fontSize: 14, color: Colors.black54),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildCounterRow(
+                            title: 'Quartos',
+                            icon: Icons.bed,
+                            value: _bedrooms,
+                            onIncrement: () => setState(() => _bedrooms++),
+                            onDecrement: () {
+                              if (_bedrooms > 0) setState(() => _bedrooms--);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          _buildCounterRow(
+                            title: 'Banheiros',
+                            icon: Icons.bathtub,
+                            value: _bathrooms,
+                            onIncrement: () => setState(() => _bathrooms++),
+                            onDecrement: () {
+                              if (_bathrooms > 0) setState(() => _bathrooms--);
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                      isActive: _currentStep >= 2,
                     ),
                   ],
                 );
@@ -323,6 +387,61 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ],
       ),
       ),
+    );
+  }
+
+  Widget _buildCounterRow({
+    required String title,
+    required IconData icon,
+    required int value,
+    required VoidCallback onIncrement,
+    required VoidCallback onDecrement,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 28, color: Colors.black87),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+        ),
+        Row(
+          children: [
+            IconButton(
+              onPressed: onDecrement,
+              icon: const Icon(Icons.remove_circle_outline),
+              color: value > 0 ? Colors.black : Colors.grey,
+              iconSize: 32,
+            ),
+            SizedBox(
+              width: 32,
+              child: Text(
+                '$value',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: onIncrement,
+              icon: const Icon(Icons.add_circle_outline),
+              color: Colors.black,
+              iconSize: 32,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
