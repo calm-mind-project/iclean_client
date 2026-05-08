@@ -774,15 +774,18 @@ class _ServiceFlowScreenState extends State<ServiceFlowScreen> {
                 ),
                 const Divider(height: 32, color: Colors.black26),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
-                      'Total Estimado',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    const Expanded(
+                      child: Text(
+                        'Total Estimado',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       'R\$ ${total.toStringAsFixed(2)}',
                       style: const TextStyle(

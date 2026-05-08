@@ -229,6 +229,11 @@ class OrderWizardController extends ChangeNotifier {
 
       await _orderService.createOrder(order);
       return null; // Sucesso
+    } on StorageException catch (e) {
+      if (e.statusCode == '413') {
+        return 'O vídeo de segurança é muito grande (limite do servidor atingido). Por favor, grave um vídeo mais curto ou diminua a resolução.';
+      }
+      return 'Erro no armazenamento: ${e.message}';
     } catch (e) {
       return e.toString();
     } finally {
