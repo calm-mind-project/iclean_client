@@ -169,7 +169,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
 
               if (_hasPendingOrder)
-                Center(
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  left: 0,
+                  right: 0,
+                  child: Center(
                   child: Tooltip(
                     message: 'Limpeza registrada. Estamos selecionando a profissional.',
                     child: Container(
