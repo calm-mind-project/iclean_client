@@ -327,23 +327,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Tamanho da Casa (Opcional)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildSizeChip('pequeno', 'Pequeno · até 80m²'),
-                  _buildSizeChip('medio', 'Médio · 81–150m²'),
-                  _buildSizeChip('grande', 'Grande · +150m²'),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Divider(),
               const SizedBox(height: 16),
               const Text(
                 'Tamanho do Imóvel',
