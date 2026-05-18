@@ -7,12 +7,8 @@ import 'views/login_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load env variables (prefere .env local; fallback para .env.example versionado)
-  try {
-    await dotenv.load(fileName: ".env");
-  } catch (_) {
-    await dotenv.load(fileName: ".env.example");
-  }
+  // Load .env variables
+  await dotenv.load(fileName: ".env");
 
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
