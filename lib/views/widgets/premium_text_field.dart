@@ -8,6 +8,7 @@ class PremiumTextField extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final int? maxLength;
   final ValueChanged<String>? onChanged;
+  final bool readOnly;
 
   const PremiumTextField({
     super.key,
@@ -18,6 +19,7 @@ class PremiumTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.maxLength,
     this.onChanged,
+    this.readOnly = false,
   });
 
   @override
@@ -29,6 +31,7 @@ class PremiumTextField extends StatelessWidget {
       textCapitalization: textCapitalization,
       maxLength: maxLength,
       onChanged: onChanged,
+      readOnly: readOnly,
       style: const TextStyle(fontSize: 16),
       decoration: InputDecoration(
         labelText: label,
