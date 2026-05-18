@@ -174,41 +174,42 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   left: 0,
                   right: 0,
                   child: Center(
-                  child: Tooltip(
-                    message: 'Limpeza registrada. Estamos selecionando a profissional.',
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade700,
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.hourglass_top, size: 18, color: Colors.white),
-                          const SizedBox(width: 8),
-                          AnimatedBuilder(
-                            animation: _bannerRotationController,
-                            builder: (context, _) {
-                              final textScale = 0.95 + (_bannerRotationController.value * 0.12);
-                              return Transform.scale(
-                                scale: textScale,
-                                child: const Text(
-                                  'PROCURANDO FAXINEIRA',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.6,
+                    child: Tooltip(
+                      message: 'Limpeza registrada. Estamos selecionando a profissional.',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade700,
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.hourglass_top, size: 18, color: Colors.white),
+                            const SizedBox(width: 8),
+                            AnimatedBuilder(
+                              animation: _bannerRotationController,
+                              builder: (context, _) {
+                                final textScale = 0.95 + (_bannerRotationController.value * 0.12);
+                                return Transform.scale(
+                                  scale: textScale,
+                                  child: const Text(
+                                    'PROCURANDO FAXINEIRA',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.6,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
