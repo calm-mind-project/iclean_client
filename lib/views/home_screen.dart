@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -90,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leadingWidth: 112,
+        leadingWidth: 260,
         leading: Builder(
           builder: (context) => Row(
             children: [
@@ -115,28 +113,44 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               if (_hasPendingOrder)
                 Tooltip(
                   message: 'Limpeza registrada. Estamos selecionando a profissional.',
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.9, end: 1.08),
-                    duration: const Duration(milliseconds: 900),
-                    curve: Curves.easeInOut,
-                    builder: (context, scale, child) {
-                      return Transform.scale(scale: scale, child: child);
+                  child: AnimatedBuilder(
+                    animation: _bannerRotationController,
+                    builder: (context, _) {
+                      final pulse = 0.94 + (_bannerRotationController.value * 0.12);
+                      return Transform.scale(
+                        scale: pulse,
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade700,
+                            borderRadius: BorderRadius.circular(999),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Transform.rotate(
+                                angle: _bannerRotationController.value * 2 * 3.1415926535,
+                                child: const Icon(Icons.hourglass_top, size: 16, color: Colors.white),
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'PROCURANDO FAXINEIRA',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
-                    onEnd: () {
-                      if (mounted) setState(() {});
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade100,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.amber.shade700),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
-                        ],
-                      ),
-                      child: const Icon(Icons.hourglass_top, size: 18, color: Colors.black87),
-                    ),
                   ),
                 ),
             ],
@@ -194,39 +208,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
 
 
-              if (_hasPendingOrder)
-                Positioned(
-                  top: 90,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: AnimatedBuilder(
-                      animation: _bannerRotationController,
-                      builder: (context, child) {
-                        final angle = math.sin(_bannerRotationController.value * 2 * math.pi) * 0.05;
-                        return Transform.rotate(angle: angle, child: child);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade700,
-                          borderRadius: BorderRadius.circular(999),
-                          boxShadow: const [
-                            BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3)),
-                          ],
-                        ),
-                        child: const Text(
-                          'PROCURANDO FAXINEIRA',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+
 
               // Feedback visual se estiver carregando a localização do GPS
               if (_homeController.isLoadingLocation)
