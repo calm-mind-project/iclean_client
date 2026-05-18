@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../controllers/home_controller.dart';
 import '../controllers/address_controller.dart';
+import '../services/order_service.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/action_bottom_sheet.dart';
 import 'service_flow_screen.dart';
@@ -18,12 +19,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final MapController _mapController = MapController();
   final HomeController _homeController = HomeController();
   final AddressController _addressController = AddressController();
+  final OrderService _orderService = OrderService();
+
+  bool _hasPendingOrder = false;
 
   @override
   void initState() {
     super.initState();
     _loadLocation();
     _addressController.fetchAddresses();
+    _loadPendingOrder();
   }
 
   Future<void> _loadLocation() async {
@@ -46,10 +51,22 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+
+  Future<void> _loadPendingOrder() async {
+    try {
+      final hasPendingOrder = await _orderService.hasPendingOrder();
+      if (mounted) {
+        setState(() => _hasPendingOrder = hasPendingOrder);
+      }
+    } catch (_) {}
+  }
+
   void _solicitarServico() {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => const ServiceFlowScreen()));
+    ).push(MaterialPageRoute(builder: (context) => const ServiceFlowScreen())).then((_) {
+      _loadPendingOrder();
+    });
   }
 
   @override
@@ -64,24 +81,42 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leadingWidth: 112,
         leading: Builder(
-          builder: (context) => Container(
-            margin: const EdgeInsets.all(8.0),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
+          builder: (context) => Row(
+            children: [
+              Container(
+                margin: const EdgeInsets.all(8.0),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.menu, color: Colors.black),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+                child: IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.black),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
+              if (_hasPendingOrder)
+                Tooltip(
+                  message: 'Limpeza registrada. Estamos selecionando a profissional.',
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade100,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.amber.shade700),
+                    ),
+                    child: const Icon(Icons.hourglass_top, size: 18, color: Colors.black87),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

@@ -16,6 +16,19 @@ class OrderService {
     return ServiceOrder.fromMap(response);
   }
 
+  /// Retorna true se usuário tiver pelo menos 1 serviço pendente aguardando profissional
+  Future<bool> hasPendingOrder() async {
+    final userId = _client.auth.currentUser!.id;
+    final response = await _client
+        .from('service_orders')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        .limit(1);
+
+    return (response as List).isNotEmpty;
+  }
+
   /// Busca todos os pedidos do usuário logado
   Future<List<ServiceOrder>> fetchMyOrders() async {
     final userId = _client.auth.currentUser!.id;

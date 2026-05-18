@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/address_controller.dart';
+import '../models/user_address.dart';
 import 'address_form_screen.dart';
 
 class AddressesScreen extends StatefulWidget {
@@ -24,10 +25,10 @@ class _AddressesScreenState extends State<AddressesScreen> {
     super.dispose();
   }
 
-  void _showAddressDialog() {
+  void _showAddressDialog({UserAddress? address}) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => AddressFormScreen(addressController: _addressController),
+        builder: (context) => AddressFormScreen(addressController: _addressController, initialAddress: address),
       ),
     );
   }
@@ -133,6 +134,10 @@ class _AddressesScreenState extends State<AddressesScreen> {
                             },
                             child: const Text('Tornar Padrão'),
                           ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () => _showAddressDialog(address: addr),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.delete_outline, color: Colors.red),
                           onPressed: () {
