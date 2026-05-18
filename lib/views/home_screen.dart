@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../controllers/home_controller.dart';
 import '../controllers/address_controller.dart';
+import '../services/order_service.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/action_bottom_sheet.dart';
 import 'service_flow_screen.dart';
@@ -14,16 +15,26 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final MapController _mapController = MapController();
   final HomeController _homeController = HomeController();
   final AddressController _addressController = AddressController();
+  final OrderService _orderService = OrderService();
+
+  bool _hasPendingOrder = false;
+  late final AnimationController _bannerRotationController;
 
   @override
   void initState() {
     super.initState();
+    _bannerRotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat();
+
     _loadLocation();
     _addressController.fetchAddresses();
+    _loadPendingOrder();
   }
 
   Future<void> _loadLocation() async {
@@ -41,15 +52,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _bannerRotationController.dispose();
     _homeController.dispose();
     _addressController.dispose();
     super.dispose();
   }
 
+
+  Future<void> _loadPendingOrder() async {
+    try {
+      final hasPendingOrder = await _orderService.hasPendingOrder();
+      if (mounted) {
+        setState(() => _hasPendingOrder = hasPendingOrder);
+      }
+    } catch (_) {}
+  }
+
   void _solicitarServico() {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => const ServiceFlowScreen()));
+    ).push(MaterialPageRoute(builder: (context) => const ServiceFlowScreen())).then((_) {
+      _loadPendingOrder();
+    });
   }
 
   @override
@@ -64,24 +88,29 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leadingWidth: 72,
         leading: Builder(
-          builder: (context) => Container(
-            margin: const EdgeInsets.all(8.0),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
+          builder: (context) => Row(
+            children: [
+              Container(
+                margin: const EdgeInsets.all(8.0),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.menu, color: Colors.black),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+                child: IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.black),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -134,6 +163,57 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                 ],
               ),
+
+
+
+
+
+              if (_hasPendingOrder)
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Tooltip(
+                      message: 'Limpeza registrada. Estamos selecionando a profissional.',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade700,
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.hourglass_top, size: 18, color: Colors.white),
+                            const SizedBox(width: 8),
+                            AnimatedBuilder(
+                              animation: _bannerRotationController,
+                              builder: (context, _) {
+                                final textScale = 0.95 + (_bannerRotationController.value * 0.12);
+                                return Transform.scale(
+                                  scale: textScale,
+                                  child: const Text(
+                                    'PROCURANDO FAXINEIRA',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.6,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
               // Feedback visual se estiver carregando a localização do GPS
               if (_homeController.isLoadingLocation)

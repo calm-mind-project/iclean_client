@@ -8,8 +8,13 @@ import 'widgets/premium_button.dart';
 
 class AddressFormScreen extends StatefulWidget {
   final AddressController addressController;
+  final UserAddress? initialAddress;
 
-  const AddressFormScreen({super.key, required this.addressController});
+  const AddressFormScreen({
+    super.key,
+    required this.addressController,
+    this.initialAddress,
+  });
 
   @override
   State<AddressFormScreen> createState() => _AddressFormScreenState();
@@ -32,6 +37,29 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   bool _isFetchingCep = false;
   int _bedrooms = 1;
   int _bathrooms = 1;
+  String? _houseSize;
+
+  bool get _isEditing => widget.initialAddress != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialAddress;
+    if (initial != null) {
+      _labelController.text = initial.label;
+      _cepController.text = initial.cep;
+      _logradouroController.text = initial.logradouro;
+      _numeroController.text = initial.numero;
+      _complementoController.text = initial.complemento ?? '';
+      _bairroController.text = initial.bairro;
+      _cidadeController.text = initial.cidade;
+      _estadoController.text = initial.estado;
+      _bedrooms = initial.bedrooms;
+      _bathrooms = initial.bathrooms;
+      _houseSize = initial.houseSize;
+      _isDefault = initial.isDefault;
+    }
+  }
 
   @override
   void dispose() {
@@ -91,6 +119,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
     final userId = Supabase.instance.client.auth.currentUser!.id;
     final newAddress = UserAddress(
+      id: widget.initialAddress?.id,
       userId: userId,
       label: _labelController.text.trim().isEmpty ? 'Novo Endereço' : _labelController.text.trim(),
       cep: _cepController.text.trim(),
@@ -102,6 +131,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       estado: _estadoController.text.trim(),
       bedrooms: _bedrooms,
       bathrooms: _bathrooms,
+      houseSize: _houseSize,
       isDefault: _isDefault,
     );
 
@@ -169,12 +199,26 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     );
   }
 
+
+  Widget _buildSizeChip(String value, String label) {
+    final selected = _houseSize == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (isSelected) {
+        setState(() => _houseSize = isSelected ? value : null);
+      },
+      selectedColor: Colors.black,
+      labelStyle: TextStyle(color: selected ? Colors.white : Colors.black87),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Novo Endereço'),
+        title: Text(_isEditing ? 'Editar Endereço' : 'Novo Endereço'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -190,6 +234,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                 controller: _labelController,
                 label: 'Nome do local (Ex: Trabalho, Casa da Mãe)',
                 textCapitalization: TextCapitalization.words,
+                readOnly: _isEditing,
               ),
               const SizedBox(height: 16),
               Row(
@@ -201,6 +246,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       controller: _cepController,
                       label: 'CEP',
                       keyboardType: TextInputType.number,
+                      readOnly: _isEditing,
                       onChanged: (val) {
                         if (val.length >= 8) _buscarCep(val);
                       },
@@ -223,6 +269,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                 controller: _logradouroController,
                 label: 'Logradouro (Rua/Av)',
                 textCapitalization: TextCapitalization.words,
+                readOnly: _isEditing,
               ),
               const SizedBox(height: 16),
               Row(
@@ -233,6 +280,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       controller: _numeroController,
                       label: 'Número',
                       keyboardType: TextInputType.number,
+                      readOnly: _isEditing,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -242,6 +290,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       controller: _complementoController,
                       label: 'Complemento (Opcional)',
                       textCapitalization: TextCapitalization.sentences,
+                      readOnly: _isEditing,
                     ),
                   ),
                 ],
@@ -251,6 +300,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                 controller: _bairroController,
                 label: 'Bairro',
                 textCapitalization: TextCapitalization.words,
+                readOnly: _isEditing,
               ),
               const SizedBox(height: 16),
               Row(
@@ -261,6 +311,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       controller: _cidadeController,
                       label: 'Cidade',
                       textCapitalization: TextCapitalization.words,
+                      readOnly: _isEditing,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -271,12 +322,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       label: 'UF',
                       textCapitalization: TextCapitalization.characters,
                       maxLength: 2,
+                      readOnly: _isEditing,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              const Divider(),
               const SizedBox(height: 16),
               const Text(
                 'Tamanho do Imóvel',
@@ -302,6 +352,21 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   if (_bathrooms > 0) setState(() => _bathrooms--);
                 },
               ),
+              const SizedBox(height: 20),
+              const Text(
+                'Tamanho da Casa (Opcional)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _buildSizeChip('pequeno', 'Pequeno · até 80m²'),
+                  _buildSizeChip('medio', 'Médio · 81–150m²'),
+                  _buildSizeChip('grande', 'Grande · +150m²'),
+                ],
+              ),
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 16),
@@ -321,7 +386,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                 listenable: widget.addressController,
                 builder: (context, _) {
                   return PremiumButton(
-                    text: 'Salvar Endereço',
+                    text: _isEditing ? 'Atualizar Endereço' : 'Salvar Endereço',
                     isLoading: widget.addressController.isSaving,
                     onPressed: _saveAddress,
                   );
