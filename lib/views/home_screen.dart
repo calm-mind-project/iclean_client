@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -15,17 +17,23 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final MapController _mapController = MapController();
   final HomeController _homeController = HomeController();
   final AddressController _addressController = AddressController();
   final OrderService _orderService = OrderService();
 
   bool _hasPendingOrder = false;
+  late final AnimationController _bannerRotationController;
 
   @override
   void initState() {
     super.initState();
+    _bannerRotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat();
+
     _loadLocation();
     _addressController.fetchAddresses();
     _loadPendingOrder();
@@ -46,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _bannerRotationController.dispose();
     _homeController.dispose();
     _addressController.dispose();
     super.dispose();
@@ -106,14 +115,28 @@ class _HomeScreenState extends State<HomeScreen> {
               if (_hasPendingOrder)
                 Tooltip(
                   message: 'Limpeza registrada. Estamos selecionando a profissional.',
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade100,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.amber.shade700),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.9, end: 1.08),
+                    duration: const Duration(milliseconds: 900),
+                    curve: Curves.easeInOut,
+                    builder: (context, scale, child) {
+                      return Transform.scale(scale: scale, child: child);
+                    },
+                    onEnd: () {
+                      if (mounted) setState(() {});
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade100,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.amber.shade700),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
+                        ],
+                      ),
+                      child: const Icon(Icons.hourglass_top, size: 18, color: Colors.black87),
                     ),
-                    child: const Icon(Icons.hourglass_top, size: 18, color: Colors.black87),
                   ),
                 ),
             ],
@@ -169,6 +192,41 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                 ],
               ),
+
+
+              if (_hasPendingOrder)
+                Positioned(
+                  top: 90,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: AnimatedBuilder(
+                      animation: _bannerRotationController,
+                      builder: (context, child) {
+                        final angle = math.sin(_bannerRotationController.value * 2 * math.pi) * 0.05;
+                        return Transform.rotate(angle: angle, child: child);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade700,
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3)),
+                          ],
+                        ),
+                        child: const Text(
+                          'PROCURANDO FAXINEIRA',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
               // Feedback visual se estiver carregando a localização do GPS
               if (_homeController.isLoadingLocation)
